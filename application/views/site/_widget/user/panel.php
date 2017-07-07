@@ -39,12 +39,12 @@
                 <a href="<?php echo site_url('user') ?>">
                     <!--<i class="fa fa-user"></i>--> <?php echo lang('user_panel_user') ?></a>
             </li>
-            <?php if (!mod("product")->setting('turn_off_function_order')): ?>
+            <?php /* if (!mod("product")->setting('turn_off_function_order')): ?>
                 <li class=" dang-ky">
                     <a href="<?php echo site_url('my-favorited') ?>">
                         <!--<i class="fa fa-user"></i>--> <?php echo lang('user_panel_product_favorited') ?></a>
                 </li>
-            <?php endif; ?>
+            <?php endif;*/ ?>
             <?php /* ?>
             <li class=" dang-ky">
                 <a href="<?php echo site_url('deposit_card') ?>"><!--<i

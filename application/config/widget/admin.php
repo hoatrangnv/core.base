@@ -34,7 +34,6 @@ $config = [
             'invoice_order',
             //'tran',
             'voucher',
-
             // 'deposit_admin',   'withdraw_admin',/* 'order_report'*/
         ],
 
@@ -61,7 +60,7 @@ $config = [
             //'message',
             'contact',
             'email_register',
-            //'comment',
+            'comment',
             //'question_answer',
             'sayus',
 

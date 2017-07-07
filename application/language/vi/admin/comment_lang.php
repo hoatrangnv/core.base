@@ -2,8 +2,10 @@
 $lang['comment_info']							= 'Quản lý bình luận';
 $lang['title_comment_setting']					= 'Cài đặt thông tin bình luận';
 $lang['title_comment_view']						= 'Chi tiết bình luận';
-$lang['comment_type_product']							= 'Khóa học';
-$lang['comment_type_lesson']							= 'Bài học';
+$lang['comment_type_product']							= 'Sản phẩm';
+$lang['comment_type_blog']							= 'Blog';
+$lang['comment_type_news']							= 'News';
+$lang['comment_type_page']							= 'page';
 $lang['comment_type_site']							= 'Đánh giá Site';
 
 $lang['comment_detail']							= 'Thông tin bình luận';

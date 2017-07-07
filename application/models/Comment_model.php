@@ -4,18 +4,18 @@ class Comment_model extends MY_Model
 {
     var $table = 'comment';
 
-    function get_product_list($input = array(), $lang_id = NULL)
+    function get_course_list($input = array(), $lang_id = NULL)
     {
         if (!isset($input['select']) || !$input['select']) {
             $input['select'] = 'comment.*,';
-            $input['select'] .= 'product.name as product_name,';
+            $input['select'] .= 'lesson_course.name as course_name,';
             $input['select'] .= 'user.name as user_name,user.email as user_email';
         }
 
         $this->_get_list_set_input($input);
 
         $this->db->from('comment');
-        $this->db->join('product', 'product.id = comment.table_id', 'left');
+        $this->db->join('lesson_course', 'lesson_course.id = comment.table_id', 'left');
         $this->db->join('user', 'user.id = comment.user_id', 'left');
 
         $query = $this->db->get();
@@ -132,8 +132,8 @@ class Comment_model extends MY_Model
         $input['where'] = $this->_filter_get_where($filter);
       //  pr($input);
         if (isset($filter['table_name'])) {
-            if ($filter['table_name'] == 'product')
-                return $this->get_product_list($input);
+            if ($filter['table_name'] == 'course')
+                return $this->get_course_list($input);
             elseif ($filter['table_name'] == 'lesson')
                 return $this->get_lesson_list($input);
         }

@@ -72,6 +72,7 @@ class Comment_mod extends MY_Mod
         {
             case 'view':
             case 'get':
+            case 'reply':
             {
                 return true;
             }

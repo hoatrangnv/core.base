@@ -34,7 +34,7 @@ class Comment extends MY_Controller
         $rules['content'] = array('content', 'required|trim|xss_clean|min_length[6]|max_length[255]|filter_html');
         $rules['security_code'] = array('security_code', 'required|trim|callback__check_security_code');
         $rules['parent_id'] = array('parent_id', 'trim|callback__check_parent_id');
-        $rules['table_id'] = array('product_id', 'required|trim|callback__check_table_id');
+        $rules['table_id'] = array('table_id', 'required|trim|callback__check_table_id');
         $rules['table_name'] = array('table_name', 'trim|xss_clean');
 
         foreach ($params as $param) {
@@ -88,11 +88,7 @@ class Comment extends MY_Controller
     {
         $where = array();
         $where['id'] = $value;
-        if ($type == 'product')
-            $id = model('product')->get_id($where);
-        elseif ($type == 'lesson')
-            $id = model('lesson')->get_id($where);
-        elseif ($type == 'site') {
+        if ($type == 'site') {
             $user = user_get_account_info();
             if (!$user) {
                 $err = 'Vui lòng đăng nhập để có thể sử dụng chức năng này';
@@ -152,8 +148,6 @@ class Comment extends MY_Controller
 
     function add()
     {
-        if(!mod("product")->setting('comment_allow'))
-            redirect();
         // Tai cac file thanh phan
         $this->load->library('form_validation');
         $this->load->helper('form');
@@ -164,7 +158,7 @@ class Comment extends MY_Controller
             $this->_autocheck($param);
         }
 
-        //kiem tra id product
+        //kiem tra id
         $table_id = $this->input->post('table_id');
         $table_name = $this->input->post('table_name');
         $err = '';
@@ -173,7 +167,7 @@ class Comment extends MY_Controller
         }
 
         // Gan dieu kien cho cac bien
-        $params = array('user',  'content');
+        $params = array('user',  'content','parent_id');
       if (in_array($table_name,['site','product']))
           $params[]='rate';
 
@@ -185,11 +179,11 @@ class Comment extends MY_Controller
             $user = user_get_account_info();
 
             // neu la khoa hoc thi chi cho comment 1 lan
-            if($table_name =="product"){
+            /*if($table_name =="product"){
                 if(model("comment")->check_exits(["table_id"=>$table_id,"table_name"=>$table_name,"user_id"=>$user->id]))
                    set_output('json', json_encode(['user' => "Bạn đã đánh giá sản phẩm này rồi!"]));
 
-            }
+            }*/
             // Lay content
             $content = $this->input->post('content');
             $content = strip_tags($content);
@@ -201,15 +195,14 @@ class Comment extends MY_Controller
             $data['rate'] = floatval($this->input->post('rate'));
             $data['content'] = $content;
             $data['user_id'] = $user->id;
-            $comment_active_status = mod("product")->setting('comment_auto_verify');
+            $data['parent_id'] =$this->input->post('parent_id',true);
+            $comment_active_status = config('status_on', 'main');//mod("product")->setting('comment_auto_verify');
 
             if ($comment_active_status == config('status_on', 'main')) {
                 $data['status'] = config('verify_yes', 'main');
 
                 //them so lan nhan xet
-                if ($table_name == 'product')
-                    $model = model('product')->get_info($table_id, 'id, comment_count, rate_total, rate_one, rate_two, rate_three, rate_four, rate_five');
-                elseif ($table_name == 'site')
+                if ($table_name == 'site')
                     $model = (object)setting_get_group('site-rating');
                 else
                     $model = model($table_name)->get_info($table_id, 'id, comment_count, rate_total, rate_one, rate_two, rate_three, rate_four, rate_five');
@@ -238,9 +231,7 @@ class Comment extends MY_Controller
                     $_data['rate'] = round($count / $_data['rate_total'], 1);
                 }
 
-                if ($table_name == 'product')
-                    model('product')->update($model->id, $_data);
-                elseif ($table_name == 'site') {
+                if ($table_name == 'site') {
                     model('setting')->set_group('site-rating', $_data);
                 }
                 else
@@ -271,16 +262,17 @@ class Comment extends MY_Controller
         $this->_form_submit_output($result);
     }
 
-
     function show()
     {
         // Tai cac file thanh phan
         $this->load->library('form_validation');
         $this->load->helper('form');
         $this->load->model('file_model');
+        $table_id = $this->input->post_get('table_id');
+        $table_name = $this->input->post_get('table_name');
 
-        $table_id = $this->uri->rsegment(4);
-        $table_name = $this->uri->rsegment(3);
+        //  $table_id = $this->uri->rsegment(4);
+        // $table_name = $this->uri->rsegment(3);
         if (!$this->_check_table_id($table_id, $table_name)) {
             return;
         }
@@ -290,6 +282,7 @@ class Comment extends MY_Controller
             'table_id' => $table_id,
             'table_name' => $table_name
         ];
+
         $total = model('comment')->filter_get_total($filter);
 
         $page_size = $this->input->get('per_page');
@@ -313,27 +306,43 @@ class Comment extends MY_Controller
                 $row->user->avatar = $image->file_name;
 
 
-            if ($table_name == 'product')
-                $row = mod('product')->comment_add_info($row);
-            else
-                $row = mod("product")->comment_add_info($row);
+            $filter['parent_id']  = $row->id;
+            $list_sub  =  model('comment')->filter_get_list($filter,$input);
+            foreach ($list_sub as $sub)
+            {
+                $user_sub = model('user')->get_info($sub->user_id, 'name,avatar');
+                $sub->user = null;
+                if ($user_sub) {
+                    $user_sub->avatar = 0;//user_get_avatar($user->avatar_id);
+                    $sub->user = $user_sub;
+
+                }
+                //$sub = mod('lesson_course')->comment_add_info($sub);
+            }
+            $row->subs = $list_sub;
         }
 
-        if ($table_name == 'product')
-            $this->data['info'] = model('product')->get_info($table_id);
+      /*  if ($table_name == 'course')
+            $this->data['info'] = model('lesson_course')->get_info($table_id);
         else
-            $this->data['info'] = model('lesson')->get_info($table_id);
+            $this->data['info'] = model('lesson')->get_info($table_id);*/
 
         $this->data['list'] = $list;
         $this->data['total'] = $total;
         $this->data['page'] = $page;
         $this->data['page_size'] = $page_size;
+        if (isset($filter['parent_id']))
+            unset($filter['parent_id']);
+        $pages_query = http_build_query($filter);
+        $this->data['ajax_pagination'] = true;
+        $this->data['ajax_pagination_url'] = site_url('comment/show').'?' . $pages_query . '&per_page=' . $page_size;
         $this->data['ajax_pagination_total'] = ceil($total / $page_size);
-
+        $this->data['page_size'] = $page_size;
         // Hien thi view
         $temp = 'site/_widget/' . $table_name . '/comment/_list';
         $this->load->view($temp, $this->data);
     }
+
 
 
 }

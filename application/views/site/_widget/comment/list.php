@@ -1,129 +1,68 @@
-<?php if (isset($info)): ?>
-    <div class="clearfix"></div>
-    <div class="top-box-comments" id="rate-box">
+<?php // $this->widget->movie->comment($movie)
+$_comment = function ($row) {
+    ob_start();
+    //pr($row);
+    $name = $row->user ? $row->user->name : 'Admin';
+    $img = (isset($row->user->avatar) && $row->user->avatar) ? $row->user->avatar->url_thumb : public_url('img/user_no_image.png');
+    ?>
+    <a class="pull-left" href="#">
+        <img alt=""
+             src="<?php echo $img ?>"
+             class="avatar">
+    </a>
+    <span class="name"><b class="red"><?php echo $name . ' </b>- ' . $row->_created_time ?></span>
+    <p class="comment-content"><?php echo $row->content ?></p>
 
-        <div id="comment-list" class="media-list comments-list">
-            <?php /*$this->load->view('site/_widget/comment/_list', array(
-                'list' => $list,
-                'ajax_pagination_total' => $ajax_pagination_total,
-                'total' => $total,
-                'info' => $info,
-                'page_size' => $page_size,
-                'page' => 1
-            ))*/ ?>
-
-
-            <?php if (mod("product")->setting('comment_allow')): ?>
-
-                <?php if (!user_is_login()): ?>
-                    <h4>
-                        <small><?php echo lang("notice_please_login_to_use_function") ?></small>
-                    </h4>
-                <?php else: ?>
-                    <?php /* ?>
-        <form id="commentForm" class="form_action" accept-charset="UTF-8"
-              action="<?php echo site_url('comment/add') ?>" method="POST">
-            <input type="hidden" name="table_id" value="<?php echo $info->id ?>"/>
-            <input type="hidden" name="table_name" value="product"/>
-            <input type="hidden" value="0" name="parent_id">
-
-            <img src="<?php echo isset($user->avatar->url_thumb) ? $user->avatar->url_thumb : public_url('img/user_no_image.png') ?>"></div>
-
-            <div class="form-group text-right">
-                                <textarea style="width: 70%;height: 60px;float:left;margin-right:20px" name="content"
-                                          placeholder="<?php echo lang("comment") ?>..."
-                                          class="form-control"></textarea>
-                <input type="submit" value="Bình luận" class="btn btn-default btn-xs pull-left">
-
-                <div class="clear"></div>
-                <div name="content_error" class="error "></div>
-                <div name="user_error" class="error "></div>
-                </div>
+    <?php
+    return ob_get_clean();
+}
+?>
+<ul class="list-unstyled comment-list">
+    <?php
+    foreach ($list as $row) {
+        ?>
+        <li>
+            <?php echo $_comment($row) ?>
+            <div class="comment-btn">
+                <a data-toggle="collapse" href="#reply_<?php echo $row->id ?>" aria-expanded="false"
+                   aria-controls="reply_<?php echo $row->id ?>"
+                   class="reply-btn">Trả lời (<?php echo count($row->subs) ?>) </a>
             </div>
-        </form>
-                <?php */ ?>
+            <div class="collapse  mt20 ml30 " id="reply_<?php echo $row->id ?>">
+                <form id="commentForm" class="form_action" accept-charset="UTF-8"
+                      action="<?php echo site_url('comment/add') ?>" method="POST">
+                    <input type="hidden" name="table_id" value="<?php echo $info->id ?>"/>
+                    <input type="hidden" name="table_name" value="course"/>
+                    <input type="hidden" name="parent_id" value="<?php echo $row->id ?>" >
 
-                <?php endif; ?>
+                    <!--<img src="<?php /*//echo !$user->avatar?$user->avatar->url_thumb:public_url('site/layout/img/default-avatar.png')*/ ?>" class="media-object user-avatar pull-left">-->
 
-                <hr>
+                    <div class="form-group text-right">
+                                            <textarea style="width: 70%;height: 60px;float:left;margin-right:20px"
+                                                      name="content"
+                                                      placeholder="<?php echo lang("comment") ?>..."
+                                                      class="form-control"></textarea>
+                        <input type="submit" value="Trả lời"
+                               class="btn btn-primary btn-xs pull-left">
 
-                <div class="ratings-and-reviews">
-                    <div class="ratings-and-reviews__sub-title"><span>Nhận xét (<?php echo count($list) ?>)</span></div>
-                    <?php foreach ($list as $row) : ?>
-                        <div class="ratings-and-reviews__review-container">
-                            <div class="ratings-and-reviews__reviewer-details">
-                                <div class="ratings-and-reviews__reviewer-avatar">
-                                    <img
-                                        src="<?php echo $row->user->avatar ? $row->user->avatar->url_thumb : public_url('img/user_no_image.png') ?>">
-
-                                </div>
-                                <div class="ratings-and-reviews__reviewer-info">
-                                    <div
-                                        class="ratings-and-reviews__reviewer-name ellipsis"> <?php echo $row->user->name ?></div>
-                                </div>
-                            </div>
-                            <div class="ratings-and-reviews__review-comment-container">
-                                <div class="star-rating--static star-rating--small"><span
-                                        style="width: <?php echo 18 * ($row->rate) ?>px;"></span></div>
-                                <div class="ratings-and-reviews__review-created" translate="">
-                                    <span><?php echo get_date($row->created, "time") ?></span></div>
-
-                                <div class="ratings-and-reviews__review-comment-content">
-                                    <p><?php echo html_escape($row->content) ?></p>
-                                </div>
-                            </div>
+                        <div class="clear"></div>
+                        <div name="content_error" class="error">
                         </div>
-                    <?php endforeach; ?>
-
-                    <!--<div class="ratings-and-reviews__show-more">
-                        <button class="btn btn-default">+ Read more</button>
-                    </div>-->
-                </div>
-                <?php if ($ajax_pagination_total > 5): ?>
-                    <ul class="comments-pagination pagination-sm pull-right pagination"
-                        data-total="<?php echo $ajax_pagination_total ?>"
-                        >
-                        <?php
-                        for ($i = 1; $i <= $ajax_pagination_total; $i++) {
-                            ?>
-                            <li <?php echo $page == $i ? 'class="active"' : '' ?>>
-                                <a
-                                    href="<?php echo site_url("comment/show/{$info->id}?per_page=$page_size&page=$i") ?>"
-                                    data-product="<?php echo $info->id ?>"
-                                    data-perpage="<?php echo $page_size ?>"
-                                    data-page="<?php echo $i ?>"
-
-                                    >
-                                    <?php echo $i ?>
-                                </a>
+                    </div>
+                </form>
+                <?php if (isset($row->subs) && $row->subs): ?>
+                    <ul class="list-unstyled">
+                        <?php foreach ($row->subs as $sub): //pr($sub);?>
+                            <li>
+                                <?php echo $_comment($sub) ?>
                             </li>
-                            <?php
-                        }
-                        ?>
+                        <?php endforeach; ?>
                     </ul>
                 <?php endif; ?>
-            <?php endif; ?>
+            </div>
+        </li>
 
-
-
-        </div>
-
-        <div class="clearfix"></div>
-    </div>
-    <script type="text/javascript">
-        $('#comment-list').on('click', '.comments-pagination a', function (e) {
-            e.preventDefault();
-            var href = $(this).prop('href');
-            var perpage = $(this).data('perpage');
-            var page = $(this).data('page');
-
-            $.ajax({
-                url: href,
-                dataType: 'html',
-                success: function (output) {
-                    $('#comment-list').html(output);
-                }
-            });
-        });
-    </script>
-<?php endif; ?>
+        <?php
+    }
+    ?>
+</ul>

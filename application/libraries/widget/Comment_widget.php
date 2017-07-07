@@ -66,7 +66,6 @@ class Comment_widget extends MY_Widget
         $temp = (!$temp) ? 'tpl::_widget/comment/form' : $temp;
         $this->load->view($temp, $this->data);
     }
-
     function comment_list( $info, $type , $temp = '' )
     {
 
@@ -103,6 +102,21 @@ class Comment_widget extends MY_Widget
                 $row->_created = get_date($row->created);
                 $row->_created_time = get_date($row->created, 'time');
             }
+
+            $filter['parent_id']  = $row->id;
+            $list_sub  =  model('comment')->filter_get_list($filter,$input);
+            foreach ($list_sub as $sub)
+            {
+                $user_sub = model('user')->get_info($sub->user_id, 'name,avatar');
+                $sub->user = null;
+                if ($user_sub) {
+                    $user_sub->avatar = 0;//user_get_avatar($user->avatar_id);
+                    $sub->user = $user_sub;
+
+                }
+                $sub = mod('lesson_course')->comment_add_info($sub);
+            }
+            $row->subs = $list_sub;
         }
 
         $user = user_get_account_info();
@@ -110,9 +124,11 @@ class Comment_widget extends MY_Widget
         $this->data['info'] = $info;
         $this->data['list'] = $list;
         $this->data['total'] = $total;
-        $this->data['page_size'] = $page_size;
+        $pages_query = http_build_query($filter);
+        $this->data['ajax_pagination'] = true;
         $this->data['ajax_pagination_total'] = ceil($total / $page_size);
-
+        $this->data['ajax_pagination_url'] = site_url('comment/show').'?' . $pages_query . '&per_page=' . $page_size;
+        $this->data['page_size'] = $page_size;
 
         // Hien thi view
        // $temp = (!$temp) ? 'site/_widget/'.$type.'/comment/list' : $temp;

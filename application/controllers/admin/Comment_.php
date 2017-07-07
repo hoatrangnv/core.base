@@ -175,8 +175,8 @@ class Comment extends MY_Controller
         $table = trim($info->table_name);
         $info->model = null;
         if ($table != "site") {
-            if ($table == 'product')
-                $table = "product";
+            if ($table == 'course')
+                $table = "lesson_course";
             $info->model = mod($table)->get_info($info->table_id);
         }
 
@@ -298,10 +298,10 @@ class Comment extends MY_Controller
             $table = trim($it->table_name);
             $it->model = null;
             if ($table != "site") {
+                if ($table == 'course')
+                    $table = "lesson_course";
+                 $it->model = mod($table)->get_info($it->table_id);
 
-                if ($table == 'product')
-                    $table = "product";
-                $it->model = mod($table)->get_info($it->table_id);
                 $filter['parent_id']    = $it->id;
                 $subs = $this->_model()->filter_get_list($filter, $input);
                 foreach ($subs as $sub)
@@ -317,6 +317,7 @@ class Comment extends MY_Controller
                 $it->{'_can_' . $action} = $this->_mod()->can_do($it, $action);
             }
         }
+       // pr($list);
         $this->data['list'] = $list;
 
         // Tao chia trang

@@ -34,9 +34,9 @@
         <div class="item-content">
             <div class="descaption">
                 <?php
-                 $content =handle_content($info->description, 'output');
-                 $content = html_entity_decode($content);
-                 echo $content;
+                $content = handle_content($info->description, 'output');
+                $content = html_entity_decode($content);
+                echo $content;
                 ?>
             </div>
             <hr>
@@ -67,6 +67,11 @@
                 <hr>
             <?php } ?>
             <div id="comments">
+                <?php //if(mod("product")->setting('comment_allow')){
+                widget('comment')->comment($info, 'blog');
+                //} ?>
+                <?php widget('comment')->comment_list($info, 'blog') ?>
+
                 <div class="fb-comments"
                      data-href="<?php echo $info->_url_view ?>"
                      data-numposts="5" data-width="100%">
