@@ -101,28 +101,29 @@ class Invoice_order_model extends MY_Model
 	 * @param string $key
 	 * @return string
 	 */
+
+	/**
+	 * Tao query filter theo key
+	 *
+	 * @param string $key
+	 * @return string
+	 */
 	protected function _make_sql_filter_by_key($key)
 	{
 		$key = str_replace([',', '.'], '', $key);
 		$key = trim($key);
+		$query = ["`keywords` LIKE '%" . t('db')->escape_like_str($key) . "%'"];
 
-		$query = ["`keywords` LIKE '%".t('db')->escape_like_str($key)."%'"];
-
+		//==
 		$keys = preg_replace('/\s+/', ' ', $key);
 		$keys = explode(' ', $keys);
-
-		$query_sub = [];
-
-		foreach ($keys as $v)
-		{
+		foreach ($keys as $v) {
 			$v = t('db')->escape_like_str($v);
 
-			$query_sub[] = "`keywords` LIKE '%{$v}%'";
+			$query[] = "`keywords` LIKE '%{$v}%'";
 		}
-
-		$query[] = '('.implode(' AND ', $query_sub).')';
-
-		return implode(' OR ', $query);
+		$query = implode(' OR ', $query);
+		return "($query)";
 	}
 
 }
